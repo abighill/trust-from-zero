@@ -1,69 +1,69 @@
-import Image from "next/image";
+import Script from "next/script";
 
+// Lucide icons (lucide.dev, ISC licence), drawn inline. public/app.js draws the rest.
+function Icon({ size = 20, className = "icon", children }: { size?: number; className?: string; children: React.ReactNode }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
+      {children}
+    </svg>
+  );
+}
+function External({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <a href={href} target="_blank" rel="noopener">
+      {children}
+      <span className="ext">
+        <Icon size={14} className="icon xs"><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></Icon>
+      </span>
+      <span className="sr"> (opens in a new tab)</span>
+    </a>
+  );
+}
+
+// The page's frame. public/app.js fills in the conversation and runs the chat.
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="wrap">
+      <div className="topbar">
+        <div className="brand">unstuck</div>
+        <button className="btn sm" id="restart" type="button" hidden>
+          <Icon><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></Icon>
+          Start again
+        </button>
+      </div>
+      <section id="said" hidden aria-label="What you've said"></section>
+      <main id="chat" aria-live="polite"></main>
+      <section id="composer">
+        <form className="inrow" id="form">
+          <label className="sr" htmlFor="box">
+            Your message
+          </label>
+          <textarea id="box" rows={1} placeholder="Reply" maxLength={2000}></textarea>
+          <button className="send" id="send" type="submit" aria-label="Send" disabled>
+            <Icon size={24} className="icon lg"><path d="M3.714 3.048a.498.498 0 0 0-.683.627l2.843 7.627a2 2 0 0 1 0 1.396l-2.842 7.627a.498.498 0 0 0 .682.627l18-8.5a.5.5 0 0 0 0-.904z" /><path d="M6 12h16" /></Icon>
+          </button>
+        </form>
+        <div className="tools">
+          <button className="btn" id="optsNow" type="button" hidden>
+            <Icon><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></Icon>
+            Show me options now
+          </button>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </section>
+      <footer className="credit">
+        <p>Guidance, not financial advice. It won&apos;t tell you what to do or name products.</p>
+        <p>
+          What you type is sent to Claude, Anthropic&apos;s AI, to write the replies. This site doesn&apos;t save it:
+          close the page and it&apos;s gone.
+        </p>
+        <p>
+          &quot;The usual order&quot; is based on the{" "}
+          <External href="https://ukpersonal.finance/flowchart/">r/UKPersonalFinance flowchart</External> and wiki, by
+          members of the UKPF community, used under{" "}
+          <External href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</External>.
+        </p>
+      </footer>
+      <Script src="/app.js" strategy="afterInteractive" />
     </div>
   );
 }

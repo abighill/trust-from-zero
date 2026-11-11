@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# test runner output
+/scripts/eval/results/
+
+# backup before the 9 Nov port from the artifact
+/backup-2026-11-09/
+/backup-2026-11-10/

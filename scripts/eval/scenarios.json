@@ -1,0 +1,254 @@
+{
+  "_about": "Test scenarios for the quality-vs-wait runner (run.mjs). Each one is a finished conversation; the runner asks for options and checks the reply. To add one, copy a block and change it. 'gaps' are things the options must raise: 'pattern' is searched for (ignoring case) anywhere in the reply, or only in option titles if 'where' is 'titles'. 'mustLink' are wiki pages at least one option should link to. 'nextQuestion' (optional) is for --mode next: the conversation stops before options, and the reply should ask a question matching 'pattern' (searched in the message, why and answer buttons) instead of giving options.",
+  "scenarios": [
+    {
+      "id": "A",
+      "name": "Loan or pension: not taking the full match",
+      "opening": {
+        "text": "Should I pay off my loan early or put more into my pension?",
+        "note": "example"
+      },
+      "exchanges": [
+        [
+          "What's the interest rate on the loan?",
+          "7%. It's a car loan, about £6,000 left, roughly 3 years to go."
+        ],
+        [
+          "How much do you put into your workplace pension, and how much does your employer put in?",
+          "I put in 3%. They match up to 5% I think."
+        ],
+        [
+          "Roughly how much do you have in savings?",
+          "About £2,500."
+        ],
+        [
+          "Roughly what do your essential bills come to each month?",
+          "About £1,800."
+        ]
+      ],
+      "youveSaid": {
+        "question": "Pay off the car loan early or put more into the pension",
+        "items": [
+          {
+            "label": "Car loan",
+            "detail": "about £6,000 at 7%, roughly 3 years left"
+          },
+          {
+            "label": "Savings",
+            "detail": "about £2,500"
+          },
+          {
+            "label": "Pension",
+            "detail": "workplace, puts in 3%, employer matches up to 5%"
+          },
+          {
+            "label": "Essential bills",
+            "detail": "about £1,800 a month"
+          }
+        ]
+      },
+      "gaps": [
+        {
+          "label": "Raises the full employer match",
+          "pattern": "match"
+        }
+      ],
+      "mustLink": [
+        "/pensions/",
+        "/debt/"
+      ]
+    },
+    {
+      "id": "B",
+      "name": "Save or invest: the credit card comes first",
+      "opening": {
+        "text": "I've got some money spare. Save it, invest it, or a bit of both?",
+        "note": "example"
+      },
+      "exchanges": [
+        [
+          "Roughly how much is spare?",
+          "About £10,000."
+        ],
+        [
+          "Do you have any debts at the moment, apart from a mortgage or student loan?",
+          "Just the mortgage really. Well, about £3,000 on a credit card at 24%, but that's separate."
+        ],
+        [
+          "Are you getting the full employer match on your workplace pension?",
+          "Yes, full match."
+        ],
+        [
+          "Is any of the £10,000 likely to be needed in the next five years?",
+          "Not really, it's spare."
+        ]
+      ],
+      "youveSaid": {
+        "question": "Save the spare money, invest it, or both",
+        "items": [
+          {
+            "label": "Credit card",
+            "detail": "about £3,000 at 24%"
+          },
+          {
+            "label": "Mortgage",
+            "detail": "has one"
+          },
+          {
+            "label": "Pension",
+            "detail": "getting the full employer match"
+          },
+          {
+            "label": "Spare money",
+            "detail": "about £10,000, not needed for 5+ years"
+          }
+        ]
+      },
+      "gaps": [
+        {
+          "label": "An option deals with the card",
+          "pattern": "card|debt",
+          "where": "titles"
+        }
+      ],
+      "mustLink": [
+        "/debt/",
+        "/investing-101/"
+      ]
+    },
+    {
+      "id": "C",
+      "name": "Car: cash would eat into emergency savings",
+      "opening": {
+        "text": "My car's on its last legs. Car loan, a finance deal, or a bike and a season ticket?",
+        "note": "example"
+      },
+      "exchanges": [
+        [
+          "Do you need a car for work, or could you get by without one?",
+          "I need one for work, I drive between sites."
+        ],
+        [
+          "Roughly how much do you have in savings?",
+          "About £4,000."
+        ],
+        [
+          "Roughly what do your essential bills come to each month?",
+          "About £2,000."
+        ],
+        [
+          "Do you have any debts at the moment, apart from a mortgage or student loan?",
+          "No."
+        ],
+        [
+          "Are you getting the full employer match on your pension?",
+          "Yes."
+        ]
+      ],
+      "youveSaid": {
+        "question": "Car loan, finance deal, or bike and season ticket",
+        "items": [
+          {
+            "label": "Debts",
+            "detail": "none"
+          },
+          {
+            "label": "Savings",
+            "detail": "about £4,000"
+          },
+          {
+            "label": "Pension",
+            "detail": "getting the full employer match"
+          },
+          {
+            "label": "Car",
+            "detail": "on its last legs, needed for work"
+          },
+          {
+            "label": "Essential bills",
+            "detail": "about £2,000 a month"
+          }
+        ]
+      },
+      "gaps": [
+        {
+          "label": "Raises emergency savings",
+          "pattern": "emergency"
+        },
+        {
+          "label": "Raises budgeting each option",
+          "pattern": "budget"
+        }
+      ],
+      "mustLink": [
+        "/emergency-fund/",
+        "/budgeting/"
+      ],
+      "nextQuestion": {
+        "label": "Asks the price, a quoted rate, a monthly amount, or whether savings could pay for it",
+        "pattern": "price|cost|rate|apr|a month|monthly|from (your |the )?savings|savings .*(towards|for|on the table)"
+      }
+    },
+    {
+      "id": "D",
+      "name": "Money stress: council tax and free debt advice",
+      "opening": {
+        "text": "Should I pay off my overdraft or keep saving for a holiday?",
+        "note": "message"
+      },
+      "exchanges": [
+        [
+          "Roughly how big is the overdraft?",
+          "About £1,200. I'm in it most of the time."
+        ],
+        [
+          "How much is in the holiday fund so far?",
+          "About £600."
+        ],
+        [
+          "Do you ever use credit to cover everyday things like food or bills?",
+          "Yeah, I put food on the card near the end of most months. And I'm a bit behind on council tax, honestly it's stressing me out."
+        ]
+      ],
+      "youveSaid": {
+        "question": "Pay off the overdraft or keep saving for a holiday",
+        "items": [
+          {
+            "label": "Council tax",
+            "detail": "a bit behind"
+          },
+          {
+            "label": "Credit card",
+            "detail": "used for food near the end of most months"
+          },
+          {
+            "label": "Overdraft",
+            "detail": "about £1,200, in it most of the time"
+          },
+          {
+            "label": "Holiday fund",
+            "detail": "about £600"
+          }
+        ]
+      },
+      "gaps": [
+        {
+          "label": "Raises council tax",
+          "pattern": "council tax"
+        },
+        {
+          "label": "Free debt advice is an option",
+          "pattern": "StepChange|National Debtline|Citizens Advice|debt advi",
+          "where": "titles"
+        }
+      ],
+      "mustLink": [
+        "/debt/"
+      ],
+      "nextQuestion": {
+        "label": "Asks the rate on the overdraft or card, or how far behind the council tax is",
+        "pattern": "rate|apr|interest|how far behind|how much behind|council tax"
+      }
+    }
+  ]
+}
