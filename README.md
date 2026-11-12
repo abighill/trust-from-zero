@@ -1,36 +1,13 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Unstuck
 
-## Getting Started
+A web tool for when more than one thing wants the same money. You describe your situation, get asked the questions that matter, see what's pulling on the money and what the usual order says about each claim, and get options with the trade-offs.
 
-First, run the development server:
+Guidance, not financial advice: it doesn't tell you what to do, name products or save what you type.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Live: https://trust-from-zero.vercel.app
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Built by Ed Hill with Next.js on Vercel and the Claude API. Claude reads the situation and explains the trade-offs; the rules come from a public source, not the model.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Licence
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+"The usual order" in `lib/instructions.md` is adapted from the [r/UKPersonalFinance flowchart and wiki](https://ukpersonal.finance/) by members of the UKPF community, licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). That adapted material is shared under the same licence.

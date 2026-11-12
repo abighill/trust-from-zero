@@ -53,8 +53,8 @@ export default function Home() {
       <footer className="credit">
         <p>Guidance, not financial advice. It won&apos;t tell you what to do or name products.</p>
         <p>
-          What you type is sent to Claude, Anthropic&apos;s AI, to write the replies. This site doesn&apos;t save it:
-          close the page and it&apos;s gone.
+          What you type is sent to Claude, Anthropic&apos;s AI, to write the replies. This site doesn&apos;t save it, and
+          Anthropic doesn&apos;t keep it either unless its automated safety checks flag it.
         </p>
         <p>
           &quot;The usual order&quot; is based on the{" "}
