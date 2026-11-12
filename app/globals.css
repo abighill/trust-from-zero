@@ -111,6 +111,18 @@ a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--accent)
 .note{display:flex;gap:var(--space-8);align-items:center;margin-top:var(--space-12);padding:var(--space-12) var(--space-16);border-radius:var(--radius-sm);
   border:1px solid var(--line);font-size:14px;line-height:20px;color:var(--muted)}
 .skips{margin-top:var(--space-8)}
+.answers{align-self:flex-start;max-width:88%;margin-top:calc(-1 * var(--space-8))}
+.answers .choices{margin-top:0}
+@media (max-width:559px){.answers{max-width:94%}}
+details.note.why{display:block;padding:0}
+.note.why summary{display:flex;align-items:center;gap:var(--space-8);min-height:var(--tap-target);padding:0 var(--space-16);cursor:pointer;list-style:none;border-radius:var(--radius-sm)}
+.note.why summary::-webkit-details-marker{display:none}
+.note.why summary:hover{color:var(--ink)}
+.note.why summary:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.note.why .chev{margin-left:auto;display:inline-flex;transition:transform .15s ease-out}
+.note.why[open] .chev{transform:rotate(180deg)}
+.note.why p{margin:0;padding:0 var(--space-16) var(--space-12) 40px}
+@media (prefers-reduced-motion:reduce){.note.why .chev{transition:none}}
 .thinking{display:inline-flex;align-items:center;gap:10px;color:var(--muted);font-size:14px;line-height:20px}
 .dots{display:inline-flex;gap:6px}
 .dots i{width:8px;height:8px;border-radius:999px;background:var(--accent);animation:fade 1.2s infinite ease-out}
@@ -171,6 +183,24 @@ mark.chg,.chg-row{background:var(--accent-soft);color:var(--ink);border-radius:4
 .sharpen .choices{margin-top:0}
 .share{display:flex;flex-wrap:wrap;gap:var(--space-8);align-items:center;padding-top:var(--space-12);border-top:1px solid var(--line)}
 .share .lbl{font-size:14px;line-height:20px;color:var(--muted);margin-right:var(--space-4)}
+/* Results (12 Nov): one card; claims as sentences; one level of boxes inside. */
+.results{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:var(--space-24) var(--space-16);display:flex;flex-direction:column;gap:var(--space-24)}
+@media (min-width:560px){.results{padding:var(--space-24)}}
+.results h2,.results .opts-head .h1{margin:0;font:600 20px/28px var(--font-heading-stack);letter-spacing:0}
+.results > .section{border-top:1px solid var(--line);padding-top:var(--space-24)}
+.pullb{display:flex;flex-direction:column;gap:var(--space-12)}
+.clines{display:flex;flex-direction:column}
+.cline{display:flex;flex-direction:column;gap:var(--space-8);padding:var(--space-12) 0;border-top:1px solid var(--line)}
+.cline:first-child{border-top:0;padding-top:0}
+.cline .head{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-8)}
+.cline p{margin:0}
+.cline strong{font-weight:600}
+.cline .why-added{font-size:14px;line-height:20px;color:var(--muted)}
+.results .grid{grid-template-columns:repeat(auto-fit,minmax(260px,1fr));width:auto;left:auto;transform:none}
+.results .card{background:transparent;padding:var(--space-16)}
+.results .pc{border:0}
+.results .pc .part{padding:var(--space-8) 0}
+.results .pc .rule{margin:0}
 .copybox{width:100%;min-height:140px;margin-top:var(--space-8);padding:var(--space-8);border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--bg);font-size:13px}
 
 /* ---------- You've said ---------- */
@@ -178,7 +208,7 @@ mark.chg,.chg-row{background:var(--accent-soft);color:var(--ink);border-radius:4
 #said[hidden]{display:none}
 .saidbox{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:var(--space-16);display:flex;flex-direction:column;gap:var(--space-12)}
 .saidbox .head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-8);cursor:pointer}
-.saidbox .head .sum{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.saidbox .head .sum{margin:0}
 .saidbox .head > div{min-width:0;display:flex;flex-direction:column;gap:2px}
 .saidbox .rows{max-height:45vh;overflow:auto}
 .srow{display:flex;align-items:center;gap:var(--space-4);padding:var(--space-8) 0;border-top:1px solid var(--line)}
@@ -212,5 +242,6 @@ mark.chg,.chg-row{background:var(--accent-soft);color:var(--ink);border-radius:4
 #composer .tools:has(> [hidden]:only-child){display:none}
 
 /* ---------- footer ---------- */
-.credit{font-size:13px;line-height:18px;color:var(--muted);padding:var(--space-16) 0 var(--space-8);margin-top:var(--space-48);border-top:1px solid var(--line)}
+.credit{font-size:13px;line-height:18px;color:var(--muted);padding:var(--space-16);margin:var(--space-48) 0 var(--space-24);border:1px solid var(--line);border-radius:var(--radius)}
+.credit p:last-child{margin-bottom:0}
 .credit p{margin:0 0 6px}

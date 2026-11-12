@@ -89,7 +89,7 @@ const PRODUCTS = /\b(vanguard|hargreaves|aj bell|trading ?212|freetrade|nutmeg|m
 
 function userText(r) {
   const out = [r.reflection, r.message, r.why];
-  for (const c of r.pulling?.claims || []) out.push(c.item, c.said, c.usualOrder?.text, c.added);
+  for (const c of r.pulling?.claims || []) out.push(c.item, c.lead, c.usualOrder?.text, c.added);
   for (const o of r.options?.items || []) out.push(o.title, o.whyForYou, ...o.pros, ...o.cons, o.lookInto?.text);
   for (const x of r.options?.ruledOut || []) out.push(x.title, x.reason);
   out.push(r.options?.wouldChange, r.options?.sharpen?.question, ...(r.options?.sharpen?.choices || []), r.notCovered?.topic, r.notCovered?.reason);
@@ -210,7 +210,7 @@ const card = (r) => {
   <p class="msg">${esc(r.reply.message)}</p>
   ${r.reply.why ? `<p class="meta">Why I'm asking: ${esc(r.reply.why)}</p>` : ""}
   ${r.reply.choices?.length ? `<p class="meta">Answers to tap: ${r.reply.choices.map(esc).join(" / ")}</p>` : ""}
-  ${(r.reply.pulling?.claims || []).length ? `<div class="pull"><b>What's pulling on this money:</b><ul>${r.reply.pulling.claims.map((c) => `<li>${esc(c.item)}${c.said ? ": " + esc(c.said) : ""}. <span class="meta">${esc(c.usualOrder?.text)}${c.usualOrder?.page ? ` <span class="pg">${esc(c.usualOrder.page)}</span>` : ""}</span>${c.added ? ` <i>Added: ${esc(c.added)}</i>` : ""}</li>`).join("")}</ul></div>` : ""}
+  ${(r.reply.pulling?.claims || []).length ? `<div class="pull"><b>What's pulling on this money:</b><ul>${r.reply.pulling.claims.map((c) => `<li><b>${esc(c.item)}</b> ${esc(c.lead)} <span class="meta">${esc(c.usualOrder?.text)}${c.usualOrder?.page ? ` <span class="pg">${esc(c.usualOrder.page)}</span>` : ""}</span>${c.added ? ` <i>Added: ${esc(c.added)}</i>` : ""}</li>`).join("")}</ul></div>` : ""}
   ${(o?.items || []).map((it, n) => `<div class="opt"><h4>${n + 1}. ${esc(it.title)}</h4>
     <p><b>Why it's here for you:</b> ${esc(it.whyForYou)}</p>
     <p><b>Pros:</b> ${it.pros.map(esc).join("; ")}</p>

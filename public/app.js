@@ -147,7 +147,7 @@
     r.choices = list(d.choices).slice(0, 4);
     var pl = d.pulling && typeof d.pulling === "object" ? (Array.isArray(d.pulling) ? d.pulling : d.pulling.claims) : null;
     if (Array.isArray(pl)){
-      var claims = pl.filter(function(c){ return c && str(c.item); }).slice(0, 4).map(function(c){ return { item: str(c.item), said: str(c.said), usualOrder: rules(c.usualOrder ? [c.usualOrder] : [])[0] || null, added: str(c.added) }; });
+      var claims = pl.filter(function(c){ return c && str(c.item); }).slice(0, 4).map(function(c){ return { item: str(c.item), lead: str(c.lead), usualOrder: rules(c.usualOrder ? [c.usualOrder] : [])[0] || null, added: str(c.added) }; });
       if (claims.length) r.pulling = claims;
     }
     var o = d.options;
@@ -190,7 +190,8 @@
       var f = partialMessage(soFar, "reflection"), m = partialMessage(soFar), changed = false;
       if (f && f !== pending.reflection){ pending.reflection = f; changed = true; }
       if (m && m !== pending.text){ pending.text = m; changed = true; }
-      if (changed){ pending.thinking = false; renderChat(true); }
+      // While the reply streams in, don't move the page: it grows below their message (12 Nov).
+      if (changed){ pending.thinking = false; renderChat(false); }
     }).then(function(data){
         var r = normalise(data);
         if (!r){ fail(pending, { code: "invalid_json", text: typeof data === "string" ? data : "" }); return; }
@@ -305,7 +306,8 @@
     if (state.question) L.push("My question: " + state.question, "");
     if (state.said.length){ L.push("What I said:"); state.said.forEach(function(s){ L.push("- " + (s.label ? s.label + ": " : "") + s.detail); }); L.push(""); }
     var pl = r.pulling || state.pulling;
-    if (pl){ L.push("What's pulling on this money (the usual order's view, as Claude reads it):"); pl.forEach(function(c){ L.push("- " + c.item + (c.said ? ": " + c.said : "")); if (c.usualOrder) L.push("  " + c.usualOrder.text + (c.usualOrder.url ? " (" + c.usualOrder.url + ")" : "")); if (c.added) L.push("  Added: " + c.added); }); L.push(""); }
+    if (pl){ L.push("What's pulling on this money (the usual order's view, as Claude reads it):"); pl.forEach(function(c){
+      L.push("- " + [c.item, c.lead, c.usualOrder ? c.usualOrder.text : ""].filter(Boolean).join(" ") + (c.usualOrder && c.usualOrder.url ? " (" + c.usualOrder.url + ")" : "")); if (c.added) L.push("  Added: " + c.added); }); L.push(""); }
     L.push("Options:");
     r.options.items.forEach(function(it, i){
       L.push("", (i+1) + ". " + it.title);
@@ -362,7 +364,6 @@
     return el("button", { cls: "btn" + (opts.cls ? " " + opts.cls : ""), type: "button", disabled: !!opts.disabled, onclick: opts.onclick, "aria-label": opts.aria || null },
       [opts.icon ? icon(opts.icon, opts.iconSize) : null, label]);
   }
-  function figureLike(t){ return /\d/.test(t) && t.length <= 28; }
 
   function renderStart(chat){
     var ex = el("div", { cls: "examples" });
@@ -374,24 +375,23 @@
       ex
     ]));
   }
+  // One sentence per claim, no boxes (12 Nov). The linked words are exactly the usual order's.
   function renderPulling(claims, live){
-    var list = el("div", { cls: "claims" });
+    var list = el("div", { cls: "clines" });
     claims.forEach(function(c){
-      var box = el("div", { cls: "claim" + (c.added ? " added" : "") }, [
-        el("div", { cls: "head" }, [el("span", { cls: "label", text: c.item }), c.added ? el("span", { cls: "tag", text: "Added" }) : null])
+      var uo = c.usualOrder, rule = null;
+      if (uo) rule = uo.url
+        ? el("a", { href: uo.url, target: "_blank", rel: "noopener" }, [uo.text, el("span", { cls: "ext" }, [icon("external-link", "xs")]), el("span", { cls: "sr", text: " (the usual order: " + uo.name + ", opens in a new tab)" })])
+        : el("span", { text: uo.text });
+      var row = el("div", { cls: "cline" + (c.added ? " added" : "") }, [
+        el("div", { cls: "head" }, [el("p", null, [el("strong", { text: c.item }), c.lead ? " " + c.lead : "", rule ? " " : "", rule]),
+          c.added ? el("span", { cls: "tag", text: "Added" }) : null])
       ]);
-      if (c.said) box.appendChild(el("p", { cls: figureLike(c.said) ? "said figure" : "said", text: c.said }));
-      else if (c.added) box.appendChild(el("p", { cls: "said none", text: "You haven't mentioned this." }));
-      if (c.added) box.appendChild(el("p", { cls: "why-added", text: c.added }));
-      if (c.usualOrder){
-        var uo = el("div", { cls: "uo" }, [el("p", { cls: "k", text: "The usual order" }), el("p", { text: c.usualOrder.text })]);
-        if (c.usualOrder.url) uo.appendChild(el("p", null, [extLink(c.usualOrder.url, c.usualOrder.name)]));
-        box.appendChild(uo);
-      }
-      if (c.added && live) box.appendChild(el("div", null, [btn("I've got this covered", { cls: "sm", icon: "check", onclick: function(){ covered(c); } })]));
-      list.appendChild(box);
+      if (c.added) row.appendChild(el("p", { cls: "why-added", text: c.added }));
+      if (c.added && live) row.appendChild(el("div", null, [btn("I've got this covered", { cls: "sm", icon: "check", onclick: function(){ covered(c); } })]));
+      list.appendChild(row);
     });
-    return el("div", { cls: "panel" }, [el("h2", { text: "What's pulling on this money" }), list,
+    return el("div", { cls: "pullb" }, [el("h2", { text: "What's pulling on this money" }), list,
       el("p", { cls: "caveat", text: "The usual order's view, as Claude reads it from what you've said." })]);
   }
   function covered(c){
@@ -455,6 +455,26 @@
         btn("Download", { cls: "sm", icon: "download", onclick: function(){ downloadShare(r, holder); } })
       ]), holder]);
   }
+  // Scroll rule (12 Nov): after they send and when the reply lands, put their last message at the top of the view,
+  // just under You've said, so they never lose their place. They scroll down for the rest.
+  function anchorLast(){
+    var mine = $("chat").querySelectorAll(".msg.person");
+    var lastMine = mine[mine.length - 1];
+    if (!lastMine) return;
+    var said = $("said"), offset = (said && !said.hidden ? said.offsetHeight : 0) + 8;
+    // Empty gap under the conversation, just big enough that their message can reach the top
+    // with the reply box still pinned to the bottom of the screen (12 Nov).
+    var chat = $("chat"), gap = chat.querySelector(".gap");
+    var chatEnd = chat.getBoundingClientRect().bottom - (gap ? gap.offsetHeight : 0);
+    var need = window.innerHeight - offset - (chatEnd + $("composer").offsetHeight - lastMine.getBoundingClientRect().top);
+    state.gap = Math.max(0, Math.ceil(need));
+    if (gap) gap.style.height = state.gap + "px";
+    var start = window.scrollY, y = Math.max(0, start + lastMine.getBoundingClientRect().top - offset);
+    var still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({ top: y, behavior: still ? "auto" : "smooth" });
+    // Some browsers skip smooth scrolling: if the page hasn't moved at all, jump there.
+    setTimeout(function(){ if (Math.abs(window.scrollY - start) < 2 && Math.abs(y - start) > 2) window.scrollTo({ top: y }); }, 700);
+  }
   function renderChat(scroll){
     var chat = $("chat");
     chat.textContent = "";
@@ -467,20 +487,29 @@
       if (m.thinking || (!m.text && !r && !m.error)){
         chat.appendChild(el("div", { cls: "msg claude" }, [el("span", { cls: "thinking", role: "status" }, [
           el("span", { cls: "dots", "aria-hidden": "true" }, [el("i"), el("i"), el("i")]), STATUS[m.statusSet || "ask"][m.statusIdx || 0] + "…"])]));
+      } else if (r && r.options && !m.superseded){
+        // The intro line goes inside the one results card below (12 Nov).
       } else if (m.text || r){
         var b = el("div", { cls: "msg claude" });
         if (m.text) b.appendChild(el("span", { cls: "text", text: m.text }));
-        if (r && r.why) b.appendChild(el("p", { cls: "note" }, [icon("circle-help", "sm"), el("span", { text: "Why I'm asking: " + r.why.charAt(0).toLowerCase() + r.why.slice(1) })]));
+        // Why I'm asking: label only, opens in place (12 Nov). Open state kept on the message so a re-render doesn't close it.
+        if (r && r.why) b.appendChild(el("details", { cls: "note why", open: m.whyOpen ? true : null, ontoggle: function(e){ m.whyOpen = e.currentTarget.open; } }, [
+          el("summary", null, [icon("circle-help", "sm"), el("span", { text: "Why I'm asking" }), el("span", { cls: "chev" }, [icon("chevron-down", "sm")])]),
+          el("p", { text: r.why })]));
         if (r && r.notCovered) b.appendChild(el("div", null, [el("span", { cls: "notcovered" }, [icon("info", "sm"), "Not covered here: " + r.notCovered.topic + (r.notCovered.reason ? " (" + r.notCovered.reason + ")" : "")])]));
-        if (r && r.choices && r.choices.length && (live || m.picked)) b.appendChild(chips(r.choices, m.picked, live, function(c){ m.picked = c; send(c, "choice"); }));
-        if (r && r.skippable && live) b.appendChild(el("div", { cls: "skips" }, [btn("Skip this question", { cls: "quiet", icon: "skip-forward", iconSize: "sm", onclick: function(){ send("Skip this question.", "skip"); } })]));
         chat.appendChild(b);
+        // Answer buttons sit below the question card, and only while it's the live question (12 Nov):
+        // once answered, the answer shows once, as their reply on the right.
+        if (live && r && ((r.choices && r.choices.length) || r.skippable)) chat.appendChild(el("div", { cls: "answers" }, [
+          r.choices && r.choices.length ? chips(r.choices, m.picked, live, function(c){ m.picked = c; send(c, "choice"); }) : null,
+          r.skippable ? el("div", { cls: "skips" }, [btn("Skip this question", { cls: "quiet", icon: "skip-forward", iconSize: "sm", onclick: function(){ send("Skip this question.", "skip"); } })]) : null]));
       }
       if (r && r.options){
         if (m.superseded) chat.appendChild(el("p", { cls: "caveat superseded", text: "These options were updated further down." }));
         else {
-          if (r.pulling) chat.appendChild(renderPulling(r.pulling, live));
-          chat.appendChild(renderOptions(r, m, live));
+          // The results in one card: intro line, what's pulling, options (12 Nov).
+          chat.appendChild(el("div", { cls: "results" }, [m.text ? el("p", { cls: "intro-line", text: m.text }) : null,
+            r.pulling ? renderPulling(r.pulling, live) : null, renderOptions(r, m, live)]));
         }
       }
       if (m.error){
@@ -490,7 +519,8 @@
       }
     });
     if (state.busy) chat.appendChild(el("div", { cls: "stoprow" }, [btn("Stop", { cls: "quiet", icon: "x", iconSize: "sm", onclick: function(){ if (state.ctl) state.ctl.abort(); } })]));
-    if (scroll) window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+    chat.appendChild(el("div", { cls: "gap", "aria-hidden": "true", style: "height:" + (state.gap || 0) + "px" }));
+    if (scroll) anchorLast();
   }
 
   // ---------- You've said ----------
@@ -521,7 +551,8 @@
     var open = state.saidOpen;
     var toggle = function(){ state.saidOpen = !state.saidOpen; state.editing = -1; render(); };
     // Closed: a one-line summary. Open: the rows say it all (the question is the first row), so no line here.
-    var sub = open ? "" : (saidSummary() || state.question);
+    // Closed: the question leads, then what they've said (12 Nov).
+    var sub = open ? "" : [state.question, saidSummary()].filter(Boolean).join(", ");
     var head = el("div", { cls: "head", onclick: function(e){ if (!e.target.closest("button")) toggle(); } }, [
       el("div", null, [el("span", { cls: "label", text: "You've said" }), sub ? el("p", { cls: "sum", text: sub }) : null]),
       el("button", { cls: "iconbtn", type: "button", "aria-expanded": open ? "true" : "false", "aria-label": open ? "Hide what you've said" : "Show what you've said", onclick: toggle }, [icon(open ? "chevron-up" : "chevron-down")])
@@ -552,8 +583,9 @@
         }
         var name = item.label || item.detail;
         rows.appendChild(el("div", { cls: "srow" }, [
+          // All rows in the same body style (12 Nov): sizing by "has a number" read as random.
           el("div", { cls: "body" }, [item.label ? el("span", { cls: "label", text: item.label }) : null,
-            el("p", { cls: "detail" }, [el("span", { cls: figureLike(item.detail) ? "figure" : "", text: item.detail }), item.edited ? el("span", { cls: "edited", text: " (edited)" }) : null])]),
+            el("p", { cls: "detail" }, [el("span", { text: item.detail }), item.edited ? el("span", { cls: "edited", text: " (edited)" }) : null])]),
           el("button", { cls: "iconbtn", type: "button", disabled: state.busy, "aria-label": "Edit " + name, onclick: function(){ state.editing = i; render(); } }, [icon("pencil")]),
           el("button", { cls: "iconbtn", type: "button", disabled: state.busy, "aria-label": "Remove " + name, onclick: function(){
             state.changes.push("Removed " + (item.label ? item.label + " (" + item.detail + ")" : "\"" + item.detail + "\"")); state.said.splice(i, 1); render(); } }, [icon("x")])
@@ -574,7 +606,9 @@
     renderChat(scroll);
     var started = state.ui.length > 0;
     var replied = state.ui.some(function(m){ return m.who === "claude" && m.reply; });
-    $("optsNow").hidden = !replied;
+    // Hidden once options are on screen (12 Nov).
+    var hasOptions = state.ui.some(function(m){ return m.reply && m.reply.options; });
+    $("optsNow").hidden = !replied || hasOptions;
     $("optsNow").disabled = state.busy || state.blocked;
     $("send").disabled = state.busy || state.blocked || !str($("box").value);
     $("restart").hidden = !started;
@@ -589,7 +623,7 @@
   $("optsNow").addEventListener("click", function(){ send("Show me options now.", "options_now"); });
   $("restart").addEventListener("click", function(){
     if (state.ctl) state.ctl.abort();
-    state.turns = []; state.ui = []; state.said = []; state.question = ""; state.ctxOpen = false; state.changes = []; state.pulling = null; state.lastOptions = null; state.editing = -1; state.busy = false; state.blocked = false;
+    state.turns = []; state.ui = []; state.said = []; state.question = ""; state.ctxOpen = false; state.changes = []; state.pulling = null; state.lastOptions = null; state.editing = -1; state.busy = false; state.blocked = false; state.gap = 0;
     render(); window.scrollTo({ top: 0 });
   });
   render();

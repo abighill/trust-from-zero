@@ -45,11 +45,13 @@ const option = {
   additionalProperties: false,
 };
 
-// One thing competing for the money, shown in "What's pulling on this money".
+// One thing competing for the money, shown in "What's pulling on this money" as one sentence (12 Nov):
+// "item" in bold, then "lead", then the usual order's rule as a link, so the linked words are exactly the
+// usual order's. Their figures stay in You've said.
 const claim = {
   type: "object",
-  properties: { item: text, said: text, usualOrder: rule, added: text },
-  required: ["item", "said", "usualOrder", "added"],
+  properties: { item: text, lead: text, usualOrder: rule, added: text },
+  required: ["item", "lead", "usualOrder", "added"],
   additionalProperties: false,
 };
 
