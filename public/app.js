@@ -42,8 +42,14 @@
     "external-link": "<path d=\"M15 3h6v6\"/><path d=\"M10 14 21 3\"/><path d=\"M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6\"/>",
     "rotate-ccw": "<path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\"/><path d=\"M3 3v5h5\"/>",
     "chevron-down": "<path d=\"m6 9 6 6 6-6\"/>",
+    "hand-coins": "<path d=\"M11 15h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 17\"/><path d=\"m7 21 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.91l-4.2 3.9\"/><path d=\"m2 16 6 6\"/><circle cx=\"16\" cy=\"9\" r=\"2.9\"/><circle cx=\"6\" cy=\"5\" r=\"3\"/>",
+    "signpost": "<path d=\"M12 13v8\"/><path d=\"M12 3v3\"/><path d=\"M2.354 10.354a1.207 1.207 0 0 1 0-1.708l2.06-2.06A2 2 0 0 1 5.828 6h12.344a2 2 0 0 1 1.414.586l2.06 2.06a1.207 1.207 0 0 1 0 1.708l-2.06 2.06a2 2 0 0 1-1.414.586H5.828a2 2 0 0 1-1.414-.586z\"/>",
+    "lightbulb": "<path d=\"M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5\"/><path d=\"M9 18h6\"/><path d=\"M10 22h4\"/>",
+    "arrow-down-right": "<path d=\"m7 7 10 10\"/><path d=\"M17 7v10H7\"/>",
     "chevron-up": "<path d=\"m18 15-6-6-6 6\"/>"
   };
+  // Icons in the coral circles that mark each item in the results card (12 Nov). Swap names here to try others.
+  var BULLET = { pull: "hand-coins", option: "signpost" };
   var NOTES = {
     message: "They typed a message.",
     example: "They tapped one of the example questions on the start screen.",
@@ -158,7 +164,7 @@
         li.url = SERVICES[li.service] || "";
         return { title: str(it.title), whyForYou: str(it.whyForYou), pros: list(it.pros), cons: list(it.cons), lookInto: li };
       });
-      var sh = o && !Array.isArray(o) && o.sharpen && typeof o.sharpen === "object" ? { question: str(o.sharpen.question), choices: list(o.sharpen.choices).slice(0, 4) } : null;
+      var sh = o && !Array.isArray(o) && o.sharpen && typeof o.sharpen === "object" ? { question: str(o.sharpen.question), why: str(o.sharpen.why), choices: list(o.sharpen.choices).slice(0, 4) } : null;
       if (sh && !sh.question) sh = null;
       var ro = o && !Array.isArray(o) && Array.isArray(o.ruledOut) ? o.ruledOut.map(function(x){ return typeof x === "string" ? { title: str(x), reason: "" } : { title: str(x && x.title), reason: str(x && x.reason) }; }).filter(function(x){ return x.title; }) : [];
       if (items.length) r.options = { items: items, wouldChange: o && !Array.isArray(o) ? str(o.wouldChange) : "", ruledOut: ro, sharpen: sh };
@@ -376,23 +382,32 @@
     ]));
   }
   // One sentence per claim, no boxes (12 Nov). The linked words are exactly the usual order's.
-  function renderPulling(claims, live){
+  // Why I'm asking: label only, opens in place. Open state kept on the message (under key) so a re-render doesn't close it.
+  function whyNote(why, m, key){
+    return el("details", { cls: "note why", open: m[key] ? true : null, ontoggle: function(e){ m[key] = e.currentTarget.open; } }, [
+      el("summary", null, [icon("circle-help", "sm"), el("span", { text: "Why I'm asking" }), el("span", { cls: "chev" }, [icon("chevron-down", "sm")])]),
+      el("p", { text: why })]);
+  }
+  // A coral circle with an icon, marking each item in a results list (12 Nov).
+  function bullet(name){ return el("span", { cls: "bullet", "aria-hidden": "true" }, [icon(name, "sm")]); }
+  function renderPulling(claims, live, intro){
     var list = el("div", { cls: "clines" });
     claims.forEach(function(c){
       var uo = c.usualOrder, rule = null;
       if (uo) rule = uo.url
         ? el("a", { href: uo.url, target: "_blank", rel: "noopener" }, [uo.text, el("span", { cls: "ext" }, [icon("external-link", "xs")]), el("span", { cls: "sr", text: " (the usual order: " + uo.name + ", opens in a new tab)" })])
         : el("span", { text: uo.text });
-      var row = el("div", { cls: "cline" + (c.added ? " added" : "") }, [
+      var body = el("div", { cls: "cbody" }, [
         el("div", { cls: "head" }, [el("p", null, [el("strong", { text: c.item }), c.lead ? " " + c.lead : "", rule ? " " : "", rule]),
           c.added ? el("span", { cls: "tag", text: "Added" }) : null])
       ]);
-      if (c.added) row.appendChild(el("p", { cls: "why-added", text: c.added }));
-      if (c.added && live) row.appendChild(el("div", null, [btn("I've got this covered", { cls: "sm", icon: "check", onclick: function(){ covered(c); } })]));
-      list.appendChild(row);
+      if (c.added) body.appendChild(el("p", { cls: "why-added", text: c.added }));
+      if (c.added && live) body.appendChild(el("div", null, [btn("I've got this covered", { cls: "sm", icon: "check", onclick: function(){ covered(c); } })]));
+      list.appendChild(el("div", { cls: "cline" + (c.added ? " added" : "") }, [bullet(BULLET.pull), body]));
     });
-    return el("div", { cls: "pullb" }, [el("h2", { text: "What's pulling on this money" }), list,
-      el("p", { cls: "caveat", text: "The usual order's view, as Claude reads it from what you've said." })]);
+    // The intro line sits under the heading as a sub-heading, since it carries the amount (12 Nov).
+    return el("div", { cls: "pullb" }, [el("div", { cls: "ptop" }, [el("h2", { text: "What's pulling on this money" }),
+      intro ? el("p", { cls: "sub", text: intro }) : null]), list]);
   }
   function covered(c){
     if (state.busy) return;
@@ -421,7 +436,7 @@
     var g = el("div", { cls: "grid n" + n });
     r.options.items.forEach(function(it, i){
       var d = r.diff ? r.diff.items[i] : null, ch = d ? d.fields : {};
-      var titleRow = el("div", { cls: "titlerow" }, [el("h3", { text: it.title }),
+      var titleRow = el("div", { cls: "titlerow" }, [bullet(BULLET.option), el("h3", { text: it.title }),
         d && d.status !== "same" ? el("span", { cls: "tag", text: d.status === "new" ? "New" : "Updated" }) : null]);
       var top = el("div", { cls: "top" }, [titleRow]);
       if (it.whyForYou) top.appendChild(el("p", { cls: "why" }, [ch.whyForYou ? el("mark", { cls: "chg", text: it.whyForYou }) : it.whyForYou]));
@@ -429,7 +444,6 @@
       if (it.pros.length || it.cons.length){
         var pc = el("div", { cls: "pc" });
         if (it.pros.length) pc.appendChild(partList("Pros", it.pros, "plus", ch.pros));
-        if (it.pros.length && it.cons.length) pc.appendChild(el("div", { cls: "rule" }));
         if (it.cons.length) pc.appendChild(partList("Cons", it.cons, "minus", ch.cons));
         c.appendChild(pc);
       }
@@ -447,12 +461,9 @@
       g,
       r.options.ruledOut.length ? el("p", { cls: "ruled" }, [el("strong", { text: "Not included: " }), r.options.ruledOut.map(function(x){ return x.title + (x.reason ? " (" + x.reason + ")" : ""); }).join("; ")]) : null,
       r.diff && r.diff.dropped.length ? el("p", { cls: "ruled" }, [el("strong", { text: "No longer included: " }), r.diff.dropped.join("; ")]) : null,
-      r.options.wouldChange ? el("p", { cls: "changer" }, [el("strong", { text: "What would most change the picture: " }), r.options.wouldChange]) : null,
-      r.options.sharpen && (live || m.pickedSharpen) ? renderSharpen(r.options.sharpen, m, live) : null,
       el("div", { cls: "share" }, [
         el("span", { cls: "lbl", text: "Keep or share these options:" }),
-        btn("Copy", { cls: "sm", icon: "copy", onclick: function(){ copyShare(r, holder); } }),
-        btn("Download", { cls: "sm", icon: "download", onclick: function(){ downloadShare(r, holder); } })
+        btn("Copy", { cls: "sm", icon: "copy", onclick: function(){ copyShare(r, holder); } })
       ]), holder]);
   }
   // Scroll rule (12 Nov): after they send and when the reply lands, put their last message at the top of the view,
@@ -493,9 +504,7 @@
         var b = el("div", { cls: "msg claude" });
         if (m.text) b.appendChild(el("span", { cls: "text", text: m.text }));
         // Why I'm asking: label only, opens in place (12 Nov). Open state kept on the message so a re-render doesn't close it.
-        if (r && r.why) b.appendChild(el("details", { cls: "note why", open: m.whyOpen ? true : null, ontoggle: function(e){ m.whyOpen = e.currentTarget.open; } }, [
-          el("summary", null, [icon("circle-help", "sm"), el("span", { text: "Why I'm asking" }), el("span", { cls: "chev" }, [icon("chevron-down", "sm")])]),
-          el("p", { text: r.why })]));
+        if (r && r.why) b.appendChild(whyNote(r.why, m, "whyOpen"));
         if (r && r.notCovered) b.appendChild(el("div", null, [el("span", { cls: "notcovered" }, [icon("info", "sm"), "Not covered here: " + r.notCovered.topic + (r.notCovered.reason ? " (" + r.notCovered.reason + ")" : "")])]));
         chat.appendChild(b);
         // Answer buttons sit below the question card, and only while it's the live question (12 Nov):
@@ -508,8 +517,17 @@
         if (m.superseded) chat.appendChild(el("p", { cls: "caveat superseded", text: "These options were updated further down." }));
         else {
           // The results in one card: intro line, what's pulling, options (12 Nov).
-          chat.appendChild(el("div", { cls: "results" }, [m.text ? el("p", { cls: "intro-line", text: m.text }) : null,
-            r.pulling ? renderPulling(r.pulling, live) : null, renderOptions(r, m, live)]));
+          chat.appendChild(el("div", { cls: "results" }, [m.text && !r.pulling ? el("p", { cls: "intro-line", text: m.text }) : null,
+            r.pulling ? renderPulling(r.pulling, live, m.text) : null, renderOptions(r, m, live)]));
+          // Below the card, in the conversation's own style (12 Nov): what would most change the picture as a reflection,
+          // the sharpening question as Claude's question, with answer buttons only while it's live.
+          if (r.options.wouldChange) chat.appendChild(el("div", { cls: "msg reflection" }, [el("span", { cls: "text", text: r.options.wouldChange })]));
+          var sh = r.options.sharpen;
+          if (sh && sh.question){
+            chat.appendChild(el("div", { cls: "msg claude" }, [el("span", { cls: "text", text: sh.question }), sh.why ? whyNote(sh.why, m, "sharpenWhyOpen") : null]));
+            if (live && sh.choices && sh.choices.length) chat.appendChild(el("div", { cls: "answers" }, [
+              chips(sh.choices, m.pickedSharpen, live, function(c){ m.pickedSharpen = c; send(c, "sharpen"); })]));
+          }
         }
       }
       if (m.error){

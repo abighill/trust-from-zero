@@ -103,8 +103,8 @@ export const replySchema = {
         },
         sharpen: nullOr({
           type: "object",
-          properties: { question: text, choices: textList },
-          required: ["question", "choices"],
+          properties: { question: text, why: text, choices: textList },
+          required: ["question", "why", "choices"],
           additionalProperties: false,
         }),
       },
