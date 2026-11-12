@@ -31,6 +31,8 @@ export default function Home() {
           Start again
         </button>
       </div>
+      {/* Welcome and start screens (12 Nov): public/app.js fills this, then hides it once the chat starts. */}
+      <section id="intro"></section>
       <section id="said" hidden aria-label="What you've said"></section>
       <main id="chat" aria-live="polite"></main>
       <section id="composer">
@@ -50,7 +52,7 @@ export default function Home() {
           </button>
         </div>
       </section>
-      <footer className="credit">
+      <footer className="credit full" id="fullFoot">
         <p>Guidance, not financial advice. It won&apos;t tell you what to do or name products.</p>
         <p>
           What you type is sent to Claude, Anthropic&apos;s AI, to write the replies. This site doesn&apos;t save it, and
@@ -61,6 +63,13 @@ export default function Home() {
           <External href="https://ukpersonal.finance/flowchart/">r/UKPersonalFinance flowchart</External> and wiki, by
           members of the UKPF community, used under{" "}
           <External href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</External>.
+        </p>
+      </footer>
+      <footer className="credit short">
+        <p>
+          Guidance, not financial advice. This site doesn&apos;t save what you type. The usual order is based on the{" "}
+          <External href="https://ukpersonal.finance/flowchart/">r/UKPersonalFinance flowchart</External> (
+          <External href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</External>).
         </p>
       </footer>
       <Script src="/app.js" strategy="afterInteractive" />

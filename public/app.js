@@ -65,7 +65,8 @@
 
   var state = {
     turns: [], ui: [], said: [], question: "", changes: [], editing: -1,
-    pulling: null, lastOptions: null, lastAction: "message", timer: null, busy: false, ctl: null, blocked: false, saidOpen: null
+    pulling: null, lastOptions: null, lastAction: "message", timer: null, busy: false, ctl: null, blocked: false, saidOpen: null,
+    view: "welcome" // welcome → start → chat (12 Nov)
   };
 
 
@@ -173,9 +174,13 @@
   function send(text, action, shown){
     text = str(text);
     if (!text || state.busy || state.blocked) return;
+    if (state.view !== "chat") setView("chat");
     state.ui.push({ who: "person", text: shown || text });
     state.turns.push({ role: "user", content: buildTurn(text, action) });
     state.lastAction = action;
+    // You've said shows from their first message (12 Nov), so it doesn't push the chat down when the first reply lands.
+    // Their own words hold the place (clamped to two lines) until Claude's short version of the question replaces them.
+    if (!state.question && state.ui.length === 1){ state.question = shown || text; state.questionRaw = true; }
     if (action === "update" || action === "covered") state.changes = [];
     request();
   }
@@ -200,7 +205,7 @@
         state.turns.push({ role: "assistant", content: JSON.stringify(data) });
         pending.text = r.message; pending.reflection = r.reflection; pending.thinking = false; pending.reply = r;
         if (r.youveSaid){
-          if (r.youveSaid.question) state.question = r.youveSaid.question;
+          if (r.youveSaid.question){ state.question = r.youveSaid.question; state.questionRaw = false; }
           state.said = r.youveSaid.items.map(function(x){ var old = state.said.filter(function(s){ return s.label === x.label && s.detail === x.detail; })[0]; return { label: x.label, detail: x.detail, edited: !!(old && old.edited) }; });
         }
         if (r.pulling) state.pulling = r.pulling;
@@ -356,15 +361,39 @@
       [opts.icon ? icon(opts.icon, opts.iconSize) : null, label]);
   }
 
-  function renderStart(chat){
-    var ex = el("div", { cls: "examples" });
-    EXAMPLES.forEach(function(q){ ex.appendChild(el("button", { cls: "example", type: "button", onclick: function(){ send(q, "example"); } }, [el("span", { text: q }), icon("arrow-right")])); });
-    chat.appendChild(el("div", { cls: "start" }, [
-      el("h1", { text: "Got more than one thing wanting the same money?" }),
-      el("p", { cls: "intro", text: "Talk it through. You'll be asked the questions that matter, see what's pulling on your money and what the usual order says about each, and get options with the trade-offs. It won't tell you what to do." }),
-      el("p", { cls: "hint", text: "Tap an example, or tell me what's going on with your money below." }),
-      ex
-    ]));
+  // ---------- views (12 Nov): welcome → start → chat ----------
+  function setView(v){ state.view = v; document.documentElement.setAttribute("data-view", v); }
+  // Replays the rise-up transition on an element (switched off for reduced motion in the CSS).
+  function rise(n, cls){ cls = cls || "rise"; n.classList.remove(cls); void n.offsetWidth; n.classList.add(cls); return n; }
+  function focusBox(){ if (window.matchMedia && window.matchMedia("(pointer: fine)").matches) $("box").focus(); }
+  function renderIntro(){
+    var intro = $("intro"), v = state.view, composer = document.getElementById("composer") || COMPOSER;
+    if (intro.getAttribute("data-v") === v) return;
+    // Hand the reply box back to its place under the chat before clearing the intro.
+    if (composer.parentNode !== WRAP) WRAP.insertBefore(composer, $("fullFoot"));
+    intro.textContent = ""; intro.setAttribute("data-v", v);
+    box.removeAttribute("aria-labelledby"); box.placeholder = "Reply";
+    if (v === "welcome"){
+      intro.hidden = false;
+      intro.appendChild(rise(el("div", { cls: "welcome" }, [
+        el("h1", { text: "Got more than one thing wanting the same money?" }),
+        el("p", { cls: "intro", text: "Talk it through. You'll be asked the questions that matter, see what's pulling on your money and what the usual order says about each, and get options with the trade-offs. It won't tell you what to do." }),
+        el("div", null, [el("button", { cls: "btn primary", type: "button", onclick: function(){ setView("start"); render(); focusBox(); } }, ["Continue", icon("arrow-right")])])
+      ])));
+    } else if (v === "start"){
+      intro.hidden = false;
+      var slot = el("div", { cls: "slot" }), ex = el("div", { cls: "examples" });
+      EXAMPLES.forEach(function(q){ ex.appendChild(el("button", { cls: "example", type: "button", onclick: function(){ send(q, "example"); } }, [el("span", { text: q }), icon("arrow-right")])); });
+      intro.appendChild(rise(el("div", { cls: "ask" }, [el("h1", { id: "askLabel", text: "Tell me what's going on with your money" }), slot,
+        el("p", { cls: "or", text: "Or tap a question" }), ex])));
+      slot.appendChild(composer);
+      box.setAttribute("aria-labelledby", "askLabel"); box.placeholder = "Type it in your own words";
+    } else {
+      intro.hidden = true;
+      // Fade only, no movement: the scroll rule measures where their message sits, and a moving chat throws it off.
+      rise($("chat"), "fadein");
+    }
+    autosize();
   }
   // One sentence per claim, no boxes (12 Nov). The linked words are exactly the usual order's.
   // Why I'm asking: label only, opens in place. Open state kept on the message (under key) so a re-render doesn't close it.
@@ -469,7 +498,7 @@
   function renderChat(scroll){
     var chat = $("chat");
     chat.textContent = "";
-    if (!state.ui.length){ renderStart(chat); return; }
+    if (!state.ui.length) return;
     var last = state.ui.length - 1;
     state.ui.forEach(function(m, i){
       if (m.who === "person"){ chat.appendChild(el("div", { cls: "msg person" }, [el("span", { cls: "text", text: m.text })])); return; }
@@ -552,7 +581,7 @@
     // Closed: the question leads, then what they've said (12 Nov).
     var sub = open ? "" : [state.question, saidSummary()].filter(Boolean).join(", ");
     var head = el("div", { cls: "head", onclick: function(e){ if (!e.target.closest("button")) toggle(); } }, [
-      el("div", null, [el("span", { cls: "label", text: "You've said" }), sub ? el("p", { cls: "sum", text: sub }) : null]),
+      el("div", null, [el("span", { cls: "label", text: "You've said" }), sub ? el("p", { cls: "sum" + (state.questionRaw ? " clamp" : ""), text: sub }) : null]),
       el("button", { cls: "iconbtn", type: "button", "aria-expanded": open ? "true" : "false", "aria-label": open ? "Hide what you've said" : "Show what you've said", onclick: toggle }, [icon(open ? "chevron-up" : "chevron-down")])
     ]);
     var box = el("div", { cls: "saidbox" }, [head]);
@@ -600,6 +629,7 @@
     s.appendChild(box);
   }
   function render(scroll){
+    renderIntro();
     renderSaid();
     renderChat(scroll);
     var started = state.ui.length > 0;
@@ -613,7 +643,7 @@
   }
 
   // ---------- wiring ----------
-  var box = $("box");
+  var box = $("box"), COMPOSER = $("composer"), WRAP = COMPOSER.parentNode;
   function autosize(){ box.style.height = "auto"; box.style.height = Math.min(box.scrollHeight, 160) + "px"; }
   box.addEventListener("input", function(){ autosize(); $("send").disabled = state.busy || state.blocked || !str(box.value); });
   box.addEventListener("keydown", function(e){ if (e.key === "Enter" && !e.shiftKey){ e.preventDefault(); $("form").requestSubmit(); } });
@@ -621,8 +651,9 @@
   $("optsNow").addEventListener("click", function(){ send("Show me options now.", "options_now"); });
   $("restart").addEventListener("click", function(){
     if (state.ctl) state.ctl.abort();
-    state.turns = []; state.ui = []; state.said = []; state.question = ""; state.ctxOpen = false; state.changes = []; state.pulling = null; state.lastOptions = null; state.editing = -1; state.busy = false; state.blocked = false; state.gap = 0;
-    render(); window.scrollTo({ top: 0 });
+    state.turns = []; state.ui = []; state.said = []; state.question = ""; state.questionRaw = false; state.ctxOpen = false; state.changes = []; state.pulling = null; state.lastOptions = null; state.editing = -1; state.busy = false; state.blocked = false; state.gap = 0;
+    setView("start"); render(); window.scrollTo({ top: 0 }); focusBox();
   });
+  setView("welcome");
   render();
 })();
