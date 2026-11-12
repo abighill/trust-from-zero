@@ -1,4 +1,4 @@
-/* Unstuck design system v3 (Claude Design artifact "Unstuck"), applied 10 Nov 2026.
+/* Unstuck design system v4 (Claude Design artifact "Unstuck"), 12 Nov 2026: white page, grey fill for tappable things, fewer lines.
    Token names match the design system. To change the look, change the tokens there and sync them here.
    Tailwind is installed but not used. */
 :root{
@@ -9,9 +9,9 @@
   --accent:#E8643C; --accent-ink:#1A1714; --accent-soft:#FDE5DB; --accent-text:#A43C1D;
   --focus:#CB4D27; --you:#E8E6E2;
   --fill:#F3F3F1; --fill-hover:#EBEBE8; --fill-pressed:#E1E1DD; /* 12 Nov: grey fill = something you can tap or type into */ --notice-bg:#E7EEF6; --notice-ink:#1F3A5C;
-  /* state tokens proposed on the Base components board (not in the design system yet) */
-  --primary-hover:#45403A; --primary-pressed:#2A2622; --control-hover:var(--accent-soft); --control-pressed:#F9C7B4;
-  --field-hover:#45403A; --disabled-bg:#E5DFD7; --disabled-ink:#857C71;
+  /* state tokens */
+  --primary-hover:#45403A; --primary-pressed:#2A2622;
+  --disabled-bg:#E5DFD7; --disabled-ink:#857C71;
   /* type */
   --font-heading-stack: var(--font-heading, Poppins), system-ui, sans-serif;
   --font-body-stack: var(--font-body, "Noto Sans"), system-ui, sans-serif;
@@ -29,8 +29,8 @@
     --primary:#F2EDE6; --primary-ink:#131110;
     --accent:#EE8160; --accent-ink:#131110; --accent-soft:#33170E; --accent-text:#F4A386;
     --focus:#F4A386; --you:#38332E; --fill:#262320; --fill-hover:#2F2B28; --fill-pressed:#3A3531; --notice-bg:#1A2531; --notice-ink:#C3D5EA;
-    --primary-hover:#CEC6BC; --primary-pressed:#A89F94; --control-pressed:#4A1D10;
-    --field-hover:#A89F94; --disabled-bg:#38332E; --disabled-ink:#857C71;
+    --primary-hover:#CEC6BC; --primary-pressed:#A89F94;
+    --disabled-bg:#38332E; --disabled-ink:#857C71;
   }
 }
 :root[data-theme="dark"]{
@@ -39,8 +39,8 @@
   --primary:#F2EDE6; --primary-ink:#131110;
   --accent:#EE8160; --accent-ink:#131110; --accent-soft:#33170E; --accent-text:#F4A386;
   --focus:#F4A386; --you:#38332E; --fill:#262320; --fill-hover:#2F2B28; --fill-pressed:#3A3531; --notice-bg:#1A2531; --notice-ink:#C3D5EA;
-  --primary-hover:#CEC6BC; --primary-pressed:#A89F94; --control-pressed:#4A1D10;
-  --field-hover:#A89F94; --disabled-bg:#38332E; --disabled-ink:#857C71;
+  --primary-hover:#CEC6BC; --primary-pressed:#A89F94;
+  --disabled-bg:#38332E; --disabled-ink:#857C71;
 }
 
 /* ---------- base ---------- */
@@ -108,7 +108,6 @@ a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--accent)
 .msg.claude{align-self:flex-start;background:transparent;border:0;padding:0}
 .msg.claude > .text{font-weight:600} /* the question, set heavier than the reflection */
 .msg.reflection{align-self:flex-start;background:transparent;border:0;padding:0;font-weight:400}
-.msg.claude.wide{max-width:100%;width:100%;background:transparent;border:0;padding:0}
 @media (max-width:559px){.msg{max-width:94%}}
 .note{display:flex;gap:var(--space-8);align-items:center;margin-top:0;padding:var(--space-12) var(--space-16);border-radius:var(--radius-sm);
   border:0;padding-left:0;font-size:14px;line-height:20px;color:var(--muted);font-weight:400}
@@ -139,24 +138,11 @@ details.note.why{display:block;padding:0}
 .notice .what{display:flex;gap:var(--space-8);align-items:center;flex:1;min-width:200px}
 .caveat.superseded{align-self:flex-start}
 
-/* ---------- reply sections (claims, options) ---------- */
+/* ---------- reply sections (options) ---------- */
 .section{display:flex;flex-direction:column;gap:var(--space-12)}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:var(--space-24) var(--space-16);display:flex;flex-direction:column;gap:var(--space-12)}
-@media (min-width:560px){.panel{padding:var(--space-24)}}
-.panel h2{margin:0;font-size:20px;line-height:28px;font-weight:600}
 .h1{margin:0;font:600 24px/32px var(--font-heading-stack);letter-spacing:-0.01em}
 .label{font-size:14px;line-height:20px;font-weight:600;color:var(--muted)}
-.figure{font:600 20px/28px var(--font-heading-stack);font-variant-numeric:tabular-nums}
 
-.claims{display:flex;flex-direction:column;gap:var(--space-12)}
-.claim{border:1px solid var(--line);border-radius:var(--radius);padding:var(--space-16);display:flex;flex-direction:column;gap:var(--space-8);background:var(--surface)}
-.claim.added{border:1px dashed var(--line-strong)}
-.claim .head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-8)}
-.claim .said{color:var(--ink)}
-.claim .said.none{color:var(--muted)}
-.uo{padding:var(--space-12) var(--space-16);border-radius:var(--radius-sm);border:1px solid var(--line);display:flex;flex-direction:column;gap:var(--space-4);font-size:14px;line-height:20px}
-.uo .k{font-size:13px;line-height:18px;font-weight:600;color:var(--muted)}
-.claim .why-added{font-size:14px;line-height:20px;color:var(--muted)}
 
 .opts-head{display:flex;flex-direction:column;gap:var(--space-4)}
 .grid{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-12)}
@@ -169,20 +155,16 @@ details.note.why{display:block;padding:0}
 .card .titlerow{display:flex;align-items:center;justify-content:space-between;gap:var(--space-8)}
 .card h3{margin:0;font-size:18px;line-height:26px;font-weight:600}
 .card .why{font-size:14px;line-height:20px;color:var(--muted)}
-mark.chg,.chg-row{background:var(--accent-soft);color:var(--ink);border-radius:4px;padding:0 4px}
+mark.chg{background:var(--accent-soft);color:var(--ink);border-radius:4px;padding:0 4px}
 .pc{border:1px solid var(--line);border-radius:var(--radius)}
 .pc .part{padding:var(--space-12) var(--space-16);display:flex;flex-direction:column;gap:var(--space-4)}
 .pc .part.chg{background:var(--accent-soft);border-radius:var(--radius)}
-.pc .rule{height:1px;background:var(--line);margin:0 var(--space-16)}
 .pc ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:var(--space-4)}
 .pc li{display:flex;gap:var(--space-8);align-items:flex-start}
 .pc li .ic{display:inline-flex;height:24px;align-items:center;color:var(--muted)}
 .look{font-size:14px;line-height:20px}
 .look.chg a,.look.chg span{background:var(--accent-soft);border-radius:4px}
 .ruled{font-size:14px;line-height:20px;color:var(--muted)}
-.changer{font-size:14px;line-height:20px}
-.sharpen{padding:var(--space-16);border-radius:var(--radius);background:var(--accent-soft);display:flex;flex-direction:column;gap:var(--space-12)}
-.sharpen .choices{margin-top:0}
 .share{display:flex;flex-wrap:wrap;gap:var(--space-8);align-items:center;padding-top:var(--space-12);border-top:1px solid var(--line)}
 .results .share{border-top:0;padding-top:var(--space-8)}
 .share .lbl{font-size:14px;line-height:20px;color:var(--muted);margin-right:var(--space-4)}
@@ -211,7 +193,6 @@ mark.chg,.chg-row{background:var(--accent-soft);color:var(--ink);border-radius:4
 .results .card .titlerow .tag{margin-left:auto}
 .results .pc{border:0}
 .results .pc .part{padding:var(--space-8) 0}
-.results .pc .rule{margin:0}
 .copybox{width:100%;min-height:140px;margin-top:var(--space-8);padding:var(--space-8);border:1px solid transparent;border-radius:var(--radius-sm);background:var(--fill);font-size:13px}
 
 /* ---------- You've said ---------- */
@@ -225,7 +206,6 @@ mark.chg,.chg-row{background:var(--accent-soft);color:var(--ink);border-radius:4
 .srow{display:flex;align-items:center;gap:var(--space-4);padding:var(--space-8) var(--rpad,0px);border-top:1px solid var(--line)}
 .srow .body{flex:1;min-width:0}
 .srow .detail{font-size:16px;line-height:24px}
-.srow .detail .figure{font-size:20px;line-height:28px}
 .edited{font-size:13px;line-height:18px;color:var(--muted);font-family:var(--font-body-stack);font-weight:400}
 .sedit{padding:var(--space-12) var(--rpad,0px);border-top:1px solid var(--line);display:flex;flex-direction:column;gap:var(--space-8)}
 .sedit .fld{display:flex;flex-direction:column;gap:6px}

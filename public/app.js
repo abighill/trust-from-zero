@@ -27,7 +27,6 @@
   };
   // Lucide icons (lucide.dev, ISC licence), the set listed in the design system.
   var ICONS = {
-    "send-horizontal": "<path d=\"M3.714 3.048a.498.498 0 0 0-.683.627l2.843 7.627a2 2 0 0 1 0 1.396l-2.842 7.627a.498.498 0 0 0 .682.627l18-8.5a.5.5 0 0 0 0-.904z\"/><path d=\"M6 12h16\"/>",
     "arrow-right": "<path d=\"M5 12h14\"/><path d=\"m12 5 7 7-7 7\"/>",
     "circle-help": "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3\"/><path d=\"M12 17h.01\"/>",
     "skip-forward": "<path d=\"M21 4v16\"/><path d=\"M6.029 4.285A2 2 0 0 0 3 6v12a2 2 0 0 0 3.029 1.715l9.997-5.998a2 2 0 0 0 .003-3.432z\"/>",
@@ -37,15 +36,12 @@
     "pencil": "<path d=\"M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z\"/><path d=\"m15 5 4 4\"/>",
     "x": "<path d=\"M18 6 6 18\"/><path d=\"m6 6 12 12\"/>",
     "copy": "<rect width=\"14\" height=\"14\" x=\"8\" y=\"8\" rx=\"2\" ry=\"2\"/><path d=\"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2\"/>",
-    "download": "<path d=\"M12 15V3\"/><path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\"/><path d=\"m7 10 5 5 5-5\"/>",
     "info": "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 16v-4\"/><path d=\"M12 8h.01\"/>",
     "external-link": "<path d=\"M15 3h6v6\"/><path d=\"M10 14 21 3\"/><path d=\"M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6\"/>",
     "rotate-ccw": "<path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\"/><path d=\"M3 3v5h5\"/>",
     "chevron-down": "<path d=\"m6 9 6 6 6-6\"/>",
     "hand-coins": "<path d=\"M11 15h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 17\"/><path d=\"m7 21 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.91l-4.2 3.9\"/><path d=\"m2 16 6 6\"/><circle cx=\"16\" cy=\"9\" r=\"2.9\"/><circle cx=\"6\" cy=\"5\" r=\"3\"/>",
     "signpost": "<path d=\"M12 13v8\"/><path d=\"M12 3v3\"/><path d=\"M2.354 10.354a1.207 1.207 0 0 1 0-1.708l2.06-2.06A2 2 0 0 1 5.828 6h12.344a2 2 0 0 1 1.414.586l2.06 2.06a1.207 1.207 0 0 1 0 1.708l-2.06 2.06a2 2 0 0 1-1.414.586H5.828a2 2 0 0 1-1.414-.586z\"/>",
-    "lightbulb": "<path d=\"M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5\"/><path d=\"M9 18h6\"/><path d=\"M10 22h4\"/>",
-    "arrow-down-right": "<path d=\"m7 7 10 10\"/><path d=\"M17 7v10H7\"/>",
     "chevron-up": "<path d=\"m18 15-6-6-6 6\"/>"
   };
   // Icons in the coral circles that mark each item in the results card (12 Nov). Swap names here to try others.
@@ -340,17 +336,6 @@
         function(){ showBox("Select and copy the text below:"); });
     } else showBox("Select and copy the text below:");
   }
-  function downloadShare(r, holder){
-    try {
-      var url = URL.createObjectURL(new Blob([shareText(r)], { type: "text/plain;charset=utf-8" }));
-      var a = el("a", { href: url, download: "unstuck-options.txt" });
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
-    } catch(e){
-      holder.textContent = ""; holder.appendChild(el("p", { cls: "small", text: "Couldn't download. Use Copy instead." }));
-    }
-  }
-
   // ---------- rendering ----------
   function icon(name, size){
     var s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -421,11 +406,6 @@
       return el("button", { cls: "chip" + (isPicked ? " picked" : ""), type: "button", disabled: !live, "aria-pressed": isPicked ? "true" : null,
         onclick: live ? function(){ onPick(c); } : null }, [isPicked ? icon("check") : null, c]);
     }));
-  }
-  function renderSharpen(sh, m, live){
-    return el("div", { cls: "sharpen" }, [el("p", { text: sh.question }),
-      sh.choices.length ? chips(sh.choices, m.pickedSharpen, live, function(c){ m.pickedSharpen = c; send(c, "sharpen"); }) : null,
-      el("p", { cls: "caveat", text: "Answer to sharpen these options, or type below." })]);
   }
   function partList(k, arr, ic, changed){
     return el("div", { cls: "part" + (changed ? " chg" : "") }, [el("p", { cls: "label", text: k }),
